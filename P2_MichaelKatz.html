@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <canvas id="myCanvas" width="800" height="800"></canvas>
+<script> "use strict"
+function setup(){
+	var canvas = document.getElementById('myCanvas');
+	var ctx = canvas.getContext('2d');
+	var armPos = -1;
+	var armSpeed = .005;
+	var wheelPos = 0;
+	var wheelSpeed = .01;
+
+	function arm(color){
+			//arm #616266
+			ctx.fillStyle = color;
+			ctx.fillRect(0, -12.5, 100, 25);
+			//joint
+			ctx.fillStyle = '#47494c';
+			ctx.arc(0, 0, 20, 0, Math.PI *2, false);
+			ctx.closePath();
+			ctx.fill();
+		
+	}
+	function largeArm(color){
+		ctx.save();
+		ctx.rotate(Math.PI * armPos);
+		arm(color);
+		ctx.translate(100, 0);
+		ctx.rotate(Math.PI *armPos);
+		arm(color);
+		ctx.translate(100, 0);
+		ctx.rotate(Math.PI *armPos);
+		arm(color);
+		ctx.translate(100, 0);
+		ctx.rotate(Math.PI *armPos);
+		arm(color);
+		ctx.restore();
+	}
+	function draw(){
+		canvas.width = canvas.width;
+		// background
+		ctx.fillStyle = 'blue';
+		ctx.fillRect(0, 0, 800, 800);
+
+		//Wheel
+		ctx.translate(400,400);
+		ctx.rotate(Math.PI * wheelPos);
+		
+		//Arm1
+		ctx.save()
+		ctx.translate(-50, 0);
+		ctx.rotate(Math.PI);
+		largeArm('gray');
+		ctx.restore();
+		//arm2
+		ctx.save()
+		ctx.translate(0, 50);
+		ctx.rotate(Math.PI * .5);
+		largeArm('green');
+		ctx.restore();
+		//arm3
+		ctx.save()
+		ctx.translate(50, 0);
+		largeArm('yellow');
+		ctx.restore();
+		//arm4
+		ctx.save()
+		ctx.translate(0, -50);
+		ctx.rotate(Math.PI * 1.5);
+		largeArm('red');
+		ctx.restore();
+
+
+		if(armPos < -1 || armPos > 1){
+			armSpeed = -armSpeed;
+			armPos = armPos + armSpeed;
+			wheelSpeed = -wheelSpeed;
+			wheelPos = wheelPos + wheelSpeed;			
+		}else{		
+			armPos = armPos + armSpeed;
+			wheelPos = wheelPos + wheelSpeed;
+		}
+		
+	window.requestAnimationFrame(draw);	
+	}
+draw();
+}
+window.onload = setup;
+</script>
+<head>
+  <meta charset="utf-8">
+  <title>Robot arms</title>
+</head>
+</html>

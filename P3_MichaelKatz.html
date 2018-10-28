@@ -1,0 +1,101 @@
+<html>
+<head>
+<meta name="description" content="[add your bin description]">
+  <meta charset="utf-8">
+  <canvas id="myCanvas" 
+	   width="500" height="500"
+	   style="border:1px solid #000;">
+  </canvas>
+  <br/>
+  <input id="slider1" type="range" min="-100" max="100" />
+  <input id="slider2" type="range" min="-100" max="100" />
+  <input id="slider3" type="range" min="-100" max="100" />
+  <script src="http://graphics.cs.wisc.edu/JS/twgl-full.min.js"></script>
+</head>
+<body>
+<script> 
+function setup() { 
+  var canvas = document.getElementById('myCanvas');
+  var context = canvas.getContext('2d');
+  var slider1 = document.getElementById('slider1');
+  slider1.value = 0;
+  var slider2 = document.getElementById('slider2');
+  slider2.value = 0;
+  var slider3 = document.getElementById('slider3');
+  slider3.value = 0;
+  var m4 = twgl.m4;
+  var angle1 = slider1.value*0.01*Math.PI;
+  var angle2 = slider2.value*0.01*Math.PI;
+  var angle3 = slider3.value*0.01*Math.PI;
+    function moveToTx(x,y,z,Tx) {
+    var loc = [x,y,z];
+    var locTx = m4.transformPoint(Tx,loc);
+    context.moveTo(locTx[0]+250,-locTx[1]+250);
+  }
+
+  function lineToTx(x,y,z,Tx) {
+    var loc = [x,y,z];
+    var locTx = m4.transformPoint(Tx,loc);
+    context.lineTo(locTx[0]+250,-locTx[1]+250);
+  }
+                
+  function drawAxes(Tx) {
+    moveToTx(0,0,0,Tx);lineToTx(50,0,0,Tx);context.stroke();
+    moveToTx(0,0,0,Tx);lineToTx(0,150,0,Tx);context.stroke();
+    moveToTx(0,0,0,Tx);lineToTx(0,0,250,Tx);context.stroke();
+  }
+
+  function drawShape1(Tx) {
+    moveToTx(-50 ,-25, -100,Tx); lineToTx(50,-25,-100,Tx); lineToTx(0 ,-25,100,Tx);
+    lineToTx(-50,-25,-100,Tx); lineToTx(0, 25, -50,Tx); lineToTx(50,-25,-100, Tx); 
+    context.stroke();
+    moveToTx(0 ,25,-50,Tx); lineToTx(0,-25,100,Tx); context.stroke();
+    moveToTx(0 ,25,-50,Tx); lineToTx(0,-25,-100,Tx); context.stroke();
+   
+  }
+  function sliderValue1(){
+  	angle1 = slider1.value*0.01*Math.PI;
+  	draw();
+  }
+  function sliderValue2(){
+  	angle2 = slider2.value*0.01*Math.PI;
+  	draw();
+  }
+  function sliderValue3(){
+  	angle3 = slider3.value *0.02*Math.PI;
+  	draw();
+  }
+
+  function draw() {
+    // hack to clear the canvas fast
+    canvas.width = canvas.width;
+
+    var eye = [500 * Math.cos(angle1), 300, 500 * Math.sin(angle1)];
+    var target = [0,0,0];
+    var up = [0,1,0];
+    var Tcamera = m4.inverse(m4.lookAt(eye,target,up));
+    var Tmodel1 = m4.rotationZ(angle2);
+    var Tmodelview1 = m4.multiply(Tmodel1,Tcamera);
+    var Tmodel2 = m4.multiply(m4.translation([0,200,0]),m4.multiply(m4.rotationZ(angle2),m4.rotationX(angle3)));
+  	var Tmodelview2 = m4.multiply(Tmodel2,Tcamera);
+
+    drawShape1(Tmodelview1);
+    
+    drawShape1(Tmodelview2)
+    drawAxes(Tcamera);
+  }
+
+  slider1.addEventListener("input", sliderValue1);
+  slider2.addEventListener("input", sliderValue2);
+  slider3.addEventListener("input", sliderValue3);
+
+  draw();
+
+}
+window.onload = setup;
+
+</script>
+<head>
+  <meta charset="utf-8">
+</head>
+</html>

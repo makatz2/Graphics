@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+  	<head>
+    	<meta name="P6_Shaders" content="Polygon">
+    	<meta charset="utf-8">
+    	<script id="vs-1" type="not-js">
+      		attribute vec3 position;
+      		attribute vec3 color;
+      		attribute vec3 normal;
+      		varying vec3 fColor;
+  			varying vec3 fNormal;
+      		uniform mat4 normalMatrix;
+      		uniform mat4 modelViewMatrix;
+      		uniform mat4 projectionMatrix;
+      	
+
+
+    		void main(){
+				fNormal = normalize(mat3(normalMatrix) * normal);
+    			gl_Position = modelViewMatrix * vec4(position, 1.0);
+	    		fColor = color; 	
+			}
+    	</script>
+
+    	<script id="fs-1" type="not-js">
+      		precision highp float;
+      		varying vec3 fColor;
+      		varying vec3 fNormal;
+      	
+      		void main(void) {
+      			vec3 dir1 = vec3(1,1,0);
+  				float dif1 = 0.5 * dot(fNormal,dir1);
+  				vec4 color =  vec4(dif1 * vec3(1,2,8), .03);
+  				gl_FragColor = vec4(fColor,1) + color;
+      		}
+    	</script>
+
+    	<!-- <script id="vs-2" type="not-js">
+      		attribute vec3 position;
+      		attribute vec3 color;
+      		attribute vec3 normal;
+      		varying vec3 fColor;
+  			varying vec3 fNormal;
+      		uniform mat4 normalMatrix;
+      		uniform mat4 modelViewMatrix;
+      		uniform mat4 projectionMatrix;
+      	
+
+
+    		void main(){
+				fNormal = normalize(mat3(normalMatrix) * normal);
+    			gl_Position = modelViewMatrix * vec4(position, 1.0);
+	    		fColor = color; 	
+			}
+    	</script>
+
+    	<script id="fs-2" type="not-js">
+      		precision highp float;
+      		varying vec3 fColor;
+      		varying vec3 fNormal;
+      	
+      		void main(void) {
+      			vec3 dir1 = vec3(1,1,0);
+  				float dif1 = 0.5 * dot(fNormal,dir1);
+  				vec4 color =  vec4(dif1 * vec3(1,2,8), .03);
+  				gl_FragColor = vec4(fColor,1) + color;
+      		}
+    	</script>
+ -->
+  	</head>
+
+  	<body onload="setup()">
+    	<canvas id="mycanvas" width="500" height="500"></canvas><br>
+    	<input id="slider1" type="range" min="-100" max="100" />
+    	<input id="slider2" type="range" min="-100" max="100" />
+    	<script src="http://graphics.cs.wisc.edu/JS/twgl-full.min.js"></script>
+  	<script>
+  		function normal(p1, p2, p3){
+  			var v3 = twgl.v3;
+  			var u = v3.subtract(p2,p1);
+  			var v = v3.subtract(p3,p1);
+  			var result = v3.cross(u,v);
+  			console.log(result + ",");
+  			return result;
+  		}
+		function setup() {
+    	// Get canvas, WebGL context, twgl.m4
+    	var canvas = document.getElementById("mycanvas");
+    	var gl = canvas.getContext("webgl");
+    	var m4 = twgl.m4;
+
+    	// Sliders at center
+    	var slider1 = document.getElementById('slider1');
+    	slider1.value = 0;
+    	var slider2 = document.getElementById('slider2');
+    	slider2.value = 0;
+
+	    // Read shader source
+    	var vertexSource1 = document.getElementById("vs-1").text;
+    	var fragmentSource1 = document.getElementById("fs-1").text;
+
+    	// Compile vertex shader
+    	var vertexShader1 = gl.createShader(gl.VERTEX_SHADER);
+    	gl.shaderSource(vertexShader1,vertexSource1);
+    	gl.compileShader(vertexShader1);
+    	if (!gl.getShaderParameter(vertexShader1, gl.COMPILE_STATUS)) {
+    		alert(gl.getShaderInfoLog(vertexShader1)); 
+        	return null; 
+  		}
+    
+    	// Compile fragment shader
+    	var fragmentShader1 = gl.createShader(gl.FRAGMENT_SHADER);
+    	gl.shaderSource(fragmentShader1,fragmentSource1);
+    	gl.compileShader(fragmentShader1);
+    	if (!gl.getShaderParameter(fragmentShader1, gl.COMPILE_STATUS)) {
+      		alert(gl.getShaderInfoLog(fragmentShader1));
+        	return null;
+    	}
+    
+    	var shaderProgram1 = gl.createProgram();
+    	gl.attachShader(shaderProgram1, vertexShader1);
+    	gl.attachShader(shaderProgram1, fragmentShader1);
+    	gl.linkProgram(shaderProgram1);
+    	if (!gl.getProgramParameter(shaderProgram1, gl.LINK_STATUS)) {
+    		alert("Could not initialize shaders"); }
+    	gl.useProgram(shaderProgram1);	    
+    
+    	shaderProgram1.PositionAttribute = gl.getAttribLocation(shaderProgram1, "position");
+    	gl.enableVertexAttribArray(shaderProgram1.PositionAttribute);   
+    	shaderProgram1.ColorAttribute = gl.getAttribLocation(shaderProgram1, "color");
+    	gl.enableVertexAttribArray(shaderProgram1.ColorAttribute);
+    	shaderProgram1.normalAttribute = gl.getAttribLocation(shaderProgram1, "normal");
+    	gl.enableVertexAttribArray(shaderProgram1.normalAttribute);
+    
+    	shaderProgram1.MVPmatrix = gl.getUniformLocation(shaderProgram1,"modelViewMatrix");
+    	shaderProgram1.normal = gl.getUniformLocation(shaderProgram1,"normalMatrix");
+    	shaderProgram1.projection = gl.getUniformLocation(shaderProgram1,"projectionMatrix");
+
+    	var vertexPos= new Float32Array(
+        	[ 0,0,0,  0,2,0, 3,1,0,  
+        	  0,0,0,  3,1,0, 1,1,1,
+        	  0,2,0, 3,1,0,  1,1,1,
+        	  0,0,0,  0,2,0, 1,1,1 ]); 
+
+    	var vertexColors = new Float32Array(
+        	[ 1.0, 0.0, 0.0,
+        	  1.0, 0.0, 0.0,
+        	  1.0, 0.0, 0.0,
+        	  0.0, 1.0, 0.0,
+        	  0.0, 1.0, 0.0,
+        	  0.0, 1.0, 0.0,
+        	  1.0, 1.0, 0.0, 
+        	  1.0, 1.0, 0.0,
+        	  1.0, 1.0, 0.0, 
+        	  0.0, 0.0, 1.0,
+        	  0.0, 0.0, 1.0,
+        	  0.0, 0.0, 1.0]
+      		);
+    
+    	var indices = new Uint8Array(
+        	[0, 1, 2, //bottom
+        	 3, 4, 5, //side1
+        	 6, 7, 8, //side2
+        	 9, 10, 11]  //back
+      		);	
+    	var bottom = normal([0.0, 0.0, 0.0], [0.0,2.0,0.0], [3.0,1.0,0.0]);  
+    	var side1 = normal([0,0,0],[3,1,0],[1,1,1]);
+    	var side2 = normal([0,2,0],[3,1,0], [1,1,1]);
+    	var back = normal([0,0,0], [0,2,0], [1,1,1]);
+    	var normals = new Float32Array(
+    		[bottom[0], bottom[1], bottom[2],
+    		 bottom[0], bottom[1], bottom[2],
+    		 bottom[0], bottom[1], bottom[2],
+    		 side1[0], side1[1], side1[2],
+    		 side1[0], side1[1], side1[2],
+    		 side1[0], side1[1], side1[2],
+    		 side2[0], side2[1], side2[2],
+    		 side2[0], side2[1], side2[2],
+    		 side2[0], side2[1], side2[2],
+    		 back[0], back[1], back[2],
+    		 back[0], back[1], back[2],
+    		 back[0], back[1], back[2]
+    		 ]);
+    	console.log(normals[0]);
+    	console.log(normals[8]);
+
+    	// we need to put the vertices into a buffer so we can
+    	// block transfer them to the graphics hardware
+    	var posBuffer = gl.createBuffer();
+    	gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, vertexPos, gl.STATIC_DRAW);
+    	posBuffer.itemSize = 3;
+    	posBuffer.numItems = 12;
+    
+    	// a buffer for colors
+    	var colorBuffer = gl.createBuffer();
+    	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+   		gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW);
+    	colorBuffer.itemSize = 3;
+    	colorBuffer.numItems = 12;
+
+    	var normalBuffer = gl.createBuffer();
+    	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+    	normalBuffer.itemSize = 3;
+    	normalBuffer.numItems = 12;
+    	// a buffer for indices
+    	var indexBuffer = gl.createBuffer();
+    	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);    
+
+    	function draw() {
+     		var angle1 = slider1.value*0.01*Math.PI;
+    		var angle2 = slider2.value*0.01*Math.PI;
+        
+        	var eye = [300*Math.sin(angle1),150.0,300.0*Math.cos(angle1)];
+        	var target = [0,0,0];
+        	var up = [0,1,0];
+    
+        	var modelView1 = m4.multiply(m4.scaling([50,50,50]), m4.rotationX(angle2));
+        	var modelView2 = m4.multiply(modelView1, m4.translation([0, 0,50]));
+        	var tCamera = m4.inverse(m4.lookAt(eye,target,up));
+        	var projectionMatrix = m4.perspective(Math.PI/4,1,10,1000);
+    
+        	var modelViewMatrix1 = m4.multiply(m4.multiply(modelView1,tCamera),projectionMatrix);
+    		var normalMatrix = m4.transpose(m4.inverse(modelView1));
+    		var modelViewMatrix2 = m4.multiply(m4.multiply(modelView2,tCamera),projectionMatrix);
+    		
+
+        	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        	gl.enable(gl.DEPTH_TEST);
+        	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+ 
+        	gl.uniformMatrix4fv(shaderProgram1.MVPmatrix,false,modelViewMatrix1);
+        	gl.uniformMatrix4fv(shaderProgram1.normal,false,normalMatrix);  
+        	gl.uniformMatrix4fv(shaderProgram1.projection,false,projectionMatrix);
+
+
+        	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        	gl.vertexAttribPointer(shaderProgram1.ColorAttribute, colorBuffer.itemSize,
+        	  gl.FLOAT,false, 0, 0);
+        	gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+        	gl.vertexAttribPointer(shaderProgram1.PositionAttribute, posBuffer.itemSize,
+        	  gl.FLOAT, false, 0, 0);
+        	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+        	gl.vertexAttribPointer(shaderProgram1.normalAttribute, normalBuffer.itemSize,
+        	  gl.FLOAT,false, 0, 0);
+
+        	gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_BYTE, 0);
+        	// gl.uniformMatrix4fv(shaderProgram1.MVPmatrix,false,modelViewMatrix2);
+        	// gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_BYTE, 0);
+	    }
+
+    	slider1.addEventListener("input",draw);
+    	slider2.addEventListener("input",draw);
+    	draw();
+		}
+	window.onload = setup;
+	</script>
+</body>
+
+</html>
